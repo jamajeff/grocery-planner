@@ -33,7 +33,8 @@ Default serving size is 2 people.
 2. **Add meals.** For each meal the user chooses:
    - **Type** — breakfast, lunch, or dinner
    - **Servings** — defaults to 2; can be raised for guests
-   - **Leftovers?** — if yes, ingredients scale up so the user cooks extra
+   - **Leftovers?** — if yes, that meal's ingredients double (cooks one extra
+     meal of the same size); this is the `leftoverMultiplier = 2` used below
    - **Source** — typed in by the user, or pulled via "Suggest for me"
 3. **Add beverages.** A separate quick list (coffee, sparkling water, juice,
    wine, etc.), not tied to meals; added directly to the grocery list.
