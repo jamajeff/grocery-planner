@@ -8,6 +8,7 @@ const sample: PlannerState = {
   ],
   week: { meals: [], beverages: [] },
   pantry: [{ id: "p1", name: "Salt" }],
+  archive: [],
 };
 
 describe("storage", () => {
@@ -30,5 +31,13 @@ describe("storage", () => {
   it("returns null on corrupt JSON instead of throwing", () => {
     localStorage.setItem(STORAGE_KEY, "{not valid json");
     expect(loadState()).toBeNull();
+  });
+
+  it("defaults archive to [] when missing from stored data", () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ library: [], week: { meals: [], beverages: [] }, pantry: [] }),
+    );
+    expect(loadState()?.archive).toEqual([]);
   });
 });
