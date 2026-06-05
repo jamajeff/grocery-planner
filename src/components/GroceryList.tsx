@@ -11,6 +11,7 @@ function fmtQty(qty: number, unit: string): string {
 
 export function GroceryList({ planner }: Props) {
   const sections = generateGroceryList(planner.state.week, planner.state.pantry);
+  // "Already have" check state is intentionally ephemeral — it resets when leaving this tab.
   const [have, setHave] = useState<Record<string, boolean>>({});
 
   function toggle(key: string) {
@@ -37,7 +38,7 @@ export function GroceryList({ planner }: Props) {
             </h3>
             <ul className="space-y-1">
               {section.items.map((item) => {
-                const key = `${section.aisle}:${item.name}:${item.unit}`;
+                const key = `${section.aisle}:${item.name.toLowerCase()}:${item.unit.toLowerCase()}`;
                 const checked = !!have[key];
                 return (
                   <li

@@ -1,6 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { usePlannerState } from "../hooks/usePlannerState";
 import type { MealType } from "../lib/types";
+
+function ServingsInput({
+  value,
+  label,
+  onCommit,
+}: {
+  value: number;
+  label: string;
+  onCommit: (servings: number) => void;
+}) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => {
+    setDraft(String(value));
+  }, [value]);
+  return (
+    <input
+      type="number"
+      min={1}
+      value={draft}
+      aria-label={label}
+      onChange={(e) => {
+        setDraft(e.target.value);
+        const v = Number(e.target.value);
+        if (Number.isFinite(v) && v >= 1) onCommit(v);
+      }}
+      className="w-14 border rounded px-2 py-1"
+    />
+  );
+}
 
 type Props = {
   planner: ReturnType<typeof usePlannerState>;
@@ -98,17 +127,10 @@ export function ThisWeek({ planner, onShowGrocery }: Props) {
             <div className="flex items-center gap-3 text-sm">
               <label className="flex items-center gap-1">
                 Serves
-                <input
-                  type="number"
-                  min={1}
-                  defaultValue={pm.servings}
-                  key={`${pm.id}-servings`}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    if (v > 0) updatePlannedMeal(pm.id, { servings: v });
-                  }}
-                  className="w-14 border rounded px-2 py-1"
-                  aria-label={`Servings for ${pm.meal.name}`}
+                <ServingsInput
+                  value={pm.servings}
+                  label={`Servings for ${pm.meal.name}`}
+                  onCommit={(servings) => updatePlannedMeal(pm.id, { servings })}
                 />
               </label>
               <label className="flex items-center gap-1">
@@ -148,7 +170,7 @@ export function ThisWeek({ planner, onShowGrocery }: Props) {
           {state.week.beverages.map((b) => (
             <li key={b.id} className="bg-white border rounded px-2 py-1 text-sm flex items-center gap-2">
               {b.name}
-              <button onClick={() => removeBeverage(b.id)} className="text-red-600">×</button>
+              <button onClick={() => removeBeverage(b.id)} className="text-red-600" aria-label={`Remove ${b.name}`}>×</button>
             </li>
           ))}
         </ul>

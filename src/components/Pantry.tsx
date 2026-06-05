@@ -37,7 +37,7 @@ export function Pantry({ planner }: Props) {
         {state.pantry.map((p) => (
           <li key={p.id} className="bg-white border rounded px-2 py-1 text-sm flex items-center gap-2">
             {p.name}
-            <button onClick={() => removePantryItem(p.id)} className="text-red-600">×</button>
+            <button onClick={() => removePantryItem(p.id)} className="text-red-600" aria-label={`Remove ${p.name} from pantry`}>×</button>
           </li>
         ))}
       </ul>

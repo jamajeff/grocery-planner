@@ -36,7 +36,7 @@ it("strikes an item in place when 'already have' is tapped, without removing it"
   const toggle = row.querySelector("input[type=checkbox]")! as HTMLInputElement;
   await userEvent.click(toggle);
   expect(screen.getByText(/spaghetti noodles/i)).toBeInTheDocument(); // still present
-  expect(row.className).toMatch(/line-through/);
+  expect(row).toHaveClass("line-through");
 });
 
 it("shows an empty message when no meals are planned", () => {

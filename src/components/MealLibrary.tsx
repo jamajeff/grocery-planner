@@ -92,6 +92,7 @@ export function MealLibrary({ planner }: Props) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search meals…"
+        aria-label="Search meals"
         className="w-full border rounded px-3 py-2 mb-4"
       />
       <ul className="space-y-3">

@@ -28,6 +28,7 @@ export default function App() {
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
+                aria-current={tab === t.id ? "page" : undefined}
                 className={`px-3 py-1.5 rounded text-sm font-medium ${
                   tab === t.id
                     ? "bg-emerald-600 text-white"
