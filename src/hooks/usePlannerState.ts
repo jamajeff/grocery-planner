@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { loadState, saveState } from "../lib/storage";
 import type { PlannerState } from "../lib/storage";
 import { SEED_MEALS } from "../data/seedMeals";
@@ -16,8 +16,13 @@ function initialState(): PlannerState {
 
 export function usePlannerState() {
   const [state, setState] = useState<PlannerState>(initialState);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     saveState(state);
   }, [state]);
 

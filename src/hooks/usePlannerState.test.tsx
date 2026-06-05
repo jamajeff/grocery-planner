@@ -53,4 +53,34 @@ describe("usePlannerState", () => {
     act(() => result.current.removePantryItem(item.id));
     expect(result.current.state.pantry.find((p) => p.name === "Rice")).toBeUndefined();
   });
+
+  it("adds a custom meal to the library", () => {
+    const { result } = renderHook(() => usePlannerState());
+    const before = result.current.state.library.length;
+    act(() => result.current.addCustomMeal({ name: "Test Meal", type: "dinner", ingredients: [] }));
+    expect(result.current.state.library.length).toBe(before + 1);
+    const added = result.current.state.library.at(-1)!;
+    expect(added.name).toBe("Test Meal");
+    expect(added.id).toBeTruthy();
+  });
+
+  it("clears the week's meals and beverages", () => {
+    const { result } = renderHook(() => usePlannerState());
+    act(() => {
+      result.current.addPlannedMeal(result.current.state.library[0], 2, false);
+      result.current.addBeverage("Coffee");
+    });
+    act(() => result.current.clearWeek());
+    expect(result.current.state.week.meals).toEqual([]);
+    expect(result.current.state.week.beverages).toEqual([]);
+  });
+
+  it("adds and removes beverages", () => {
+    const { result } = renderHook(() => usePlannerState());
+    act(() => result.current.addBeverage("Coffee"));
+    const bev = result.current.state.week.beverages.find((b) => b.name === "Coffee")!;
+    expect(bev).toBeTruthy();
+    act(() => result.current.removeBeverage(bev.id));
+    expect(result.current.state.week.beverages.find((b) => b.name === "Coffee")).toBeUndefined();
+  });
 });
