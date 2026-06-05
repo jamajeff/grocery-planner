@@ -11,6 +11,7 @@ function initialState(): PlannerState {
     library: SEED_MEALS,
     week: { meals: [], beverages: [] },
     pantry: STAPLE_PANTRY,
+    archive: [],
   };
 }
 
@@ -98,6 +99,30 @@ export function usePlannerState() {
     setState((s) => ({ ...s, week: { meals: [], beverages: [] } }));
   }
 
+  function finishWeek() {
+    setState((s) => {
+      if (s.week.meals.length === 0 && s.week.beverages.length === 0) return s;
+      const archived = {
+        id: makeId(),
+        finishedAt: new Date().toISOString(),
+        week: s.week,
+      };
+      return {
+        ...s,
+        week: { meals: [], beverages: [] },
+        archive: [archived, ...s.archive],
+      };
+    });
+  }
+
+  function restoreWeek(id: string) {
+    setState((s) => {
+      const found = s.archive.find((a) => a.id === id);
+      if (!found) return s;
+      return { ...s, week: found.week };
+    });
+  }
+
   return {
     state,
     addPlannedMeal,
@@ -109,5 +134,7 @@ export function usePlannerState() {
     addPantryItem,
     removePantryItem,
     clearWeek,
+    finishWeek,
+    restoreWeek,
   };
 }

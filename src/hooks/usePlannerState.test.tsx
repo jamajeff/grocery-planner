@@ -75,6 +75,38 @@ describe("usePlannerState", () => {
     expect(result.current.state.week.beverages).toEqual([]);
   });
 
+  it("finishWeek archives the current week and clears it", () => {
+    const { result } = renderHook(() => usePlannerState());
+    act(() => result.current.addPlannedMeal(SEED_MEALS[0], 2, false));
+    act(() => result.current.finishWeek());
+    expect(result.current.state.week.meals).toEqual([]);
+    expect(result.current.state.archive.length).toBe(1);
+    expect(result.current.state.archive[0].week.meals.length).toBe(1);
+    expect(result.current.state.archive[0].finishedAt).toBeTruthy();
+  });
+
+  it("finishWeek is a no-op on an empty week", () => {
+    const { result } = renderHook(() => usePlannerState());
+    act(() => result.current.finishWeek());
+    expect(result.current.state.archive.length).toBe(0);
+  });
+
+  it("restoreWeek replaces the current week and leaves history intact", () => {
+    const { result } = renderHook(() => usePlannerState());
+    act(() => result.current.addPlannedMeal(SEED_MEALS[0], 2, false));
+    act(() => result.current.finishWeek());
+    const id = result.current.state.archive[0].id;
+    act(() => result.current.restoreWeek(id));
+    expect(result.current.state.week.meals.length).toBe(1);
+    expect(result.current.state.archive.length).toBe(1);
+  });
+
+  it("restoreWeek with an unknown id is a no-op", () => {
+    const { result } = renderHook(() => usePlannerState());
+    act(() => result.current.restoreWeek("nope"));
+    expect(result.current.state.week.meals).toEqual([]);
+  });
+
   it("adds and removes beverages", () => {
     const { result } = renderHook(() => usePlannerState());
     act(() => result.current.addBeverage("Coffee"));

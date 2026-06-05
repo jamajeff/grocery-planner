@@ -44,6 +44,13 @@ export interface WeekPlan {
   beverages: Beverage[];
 }
 
+/** A finished week, snapshotted into history. */
+export interface ArchivedWeek {
+  id: string;
+  finishedAt: string; // ISO timestamp stamped at finish time
+  week: WeekPlan;
+}
+
 export interface PantryItem {
   id: string;
   name: string;

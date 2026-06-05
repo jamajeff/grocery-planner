@@ -1,21 +1,38 @@
 import { useState } from "react";
 import type { usePlannerState } from "../hooks/usePlannerState";
 import { generateGroceryList } from "../lib/groceryList";
+import { fmtQty } from "../lib/format";
+import { toRemindersText, toNotesText } from "../lib/exportList";
 
 type Props = { planner: ReturnType<typeof usePlannerState> };
-
-function fmtQty(qty: number, unit: string): string {
-  const rounded = Math.round(qty * 100) / 100;
-  return unit ? `${rounded} ${unit}` : `${rounded}`;
-}
 
 export function GroceryList({ planner }: Props) {
   const sections = generateGroceryList(planner.state.week, planner.state.pantry);
   // "Already have" check state is intentionally ephemeral — it resets when leaving this tab.
   const [have, setHave] = useState<Record<string, boolean>>({});
+  const [copied, setCopied] = useState<string | null>(null);
 
   function toggle(key: string) {
     setHave((h) => ({ ...h, [key]: !h[key] }));
+  }
+
+  async function copy(label: string, text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Fallback: drop the text into a temporary textarea and select it.
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+      } catch {
+        /* user can copy manually */
+      }
+      document.body.removeChild(ta);
+    }
+    setCopied(label);
   }
 
   if (planner.state.week.meals.length === 0 && planner.state.week.beverages.length === 0) {
@@ -30,6 +47,29 @@ export function GroceryList({ planner }: Props) {
   return (
     <section>
       <h2 className="text-lg font-semibold mb-4">Grocery List</h2>
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button
+          onClick={() => copy("reminders", toRemindersText(sections))}
+          className="px-3 py-1.5 rounded text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+          aria-label="Copy grocery list for Reminders"
+        >
+          {copied === "reminders" ? "Copied!" : "Copy for Reminders"}
+        </button>
+        <button
+          onClick={() => copy("notes", toNotesText(sections))}
+          className="px-3 py-1.5 rounded text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+          aria-label="Copy grocery list for Notes"
+        >
+          {copied === "notes" ? "Copied!" : "Copy for Notes"}
+        </button>
+        <button
+          onClick={() => planner.finishWeek()}
+          className="px-3 py-1.5 rounded text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 ml-auto"
+          aria-label="Finish this week and move it to history"
+        >
+          Finish week
+        </button>
+      </div>
       <div className="space-y-5">
         {sections.map((section) => (
           <div key={section.aisle}>
