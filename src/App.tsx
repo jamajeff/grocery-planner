@@ -4,14 +4,16 @@ import { ThisWeek } from "./components/ThisWeek";
 import { GroceryList } from "./components/GroceryList";
 import { MealLibrary } from "./components/MealLibrary";
 import { Pantry } from "./components/Pantry";
+import { History } from "./components/History";
 
-type Tab = "week" | "grocery" | "library" | "pantry";
+type Tab = "week" | "grocery" | "library" | "pantry" | "history";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "week", label: "This Week" },
   { id: "grocery", label: "Grocery List" },
   { id: "library", label: "Meal Library" },
   { id: "pantry", label: "Pantry" },
+  { id: "history", label: "History" },
 ];
 
 export default function App() {
@@ -46,6 +48,7 @@ export default function App() {
         {tab === "grocery" && <GroceryList planner={planner} />}
         {tab === "library" && <MealLibrary planner={planner} />}
         {tab === "pantry" && <Pantry planner={planner} />}
+        {tab === "history" && <History planner={planner} />}
       </main>
     </div>
   );
