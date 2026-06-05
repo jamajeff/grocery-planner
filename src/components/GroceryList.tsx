@@ -1,13 +1,9 @@
 import { useState } from "react";
 import type { usePlannerState } from "../hooks/usePlannerState";
 import { generateGroceryList } from "../lib/groceryList";
+import { fmtQty } from "../lib/format";
 
 type Props = { planner: ReturnType<typeof usePlannerState> };
-
-function fmtQty(qty: number, unit: string): string {
-  const rounded = Math.round(qty * 100) / 100;
-  return unit ? `${rounded} ${unit}` : `${rounded}`;
-}
 
 export function GroceryList({ planner }: Props) {
   const sections = generateGroceryList(planner.state.week, planner.state.pantry);
