@@ -42,6 +42,12 @@ export function generateGroceryList(
       const existing = byKey.get(k);
       if (existing) {
         existing.quantity += scaled.quantity;
+        if (
+          scaled.shelfLife === "long-lasting" ||
+          pantryNames.has(scaled.name.toLowerCase())
+        ) {
+          existing.mayAlreadyHave = true;
+        }
       } else {
         byKey.set(k, {
           name: scaled.name,
@@ -58,21 +64,17 @@ export function generateGroceryList(
   }
 
   for (const bev of plan.beverages) {
-    const k = key(bev.name, "");
-    if (!byKey.has(k)) {
-      byKey.set(k, {
-        name: bev.name,
-        quantity: 1,
-        unit: "",
-        aisle: "beverages",
-        shelfLife: "perishable",
-        mayAlreadyHave: pantryNames.has(bev.name.toLowerCase()),
-      });
-    }
+    byKey.set(`bev:${bev.id}`, {
+      name: bev.name,
+      quantity: 1,
+      unit: "",
+      aisle: "beverages",
+      shelfLife: "perishable",
+      mayAlreadyHave: pantryNames.has(bev.name.toLowerCase()),
+    });
   }
 
-  // Re-evaluate pantry flag for aggregated items (covers items added before
-  // a duplicate raised the quantity; flag depends only on name/shelfLife).
+  // Group by aisle in canonical order; skip empty aisles.
   const sections: GroceryListSection[] = [];
   for (const aisle of AISLE_ORDER) {
     const items = [...byKey.values()]

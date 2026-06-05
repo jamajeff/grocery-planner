@@ -12,6 +12,7 @@ export function loadState(): PlannerState | null {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (raw === null) return null;
   try {
+    // TODO: add runtime shape validation if the stored schema ever changes versions.
     return JSON.parse(raw) as PlannerState;
   } catch {
     return null;

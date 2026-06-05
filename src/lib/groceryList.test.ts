@@ -81,16 +81,42 @@ describe("generateGroceryList", () => {
   });
 
   it("returns sections in canonical aisle order", () => {
-    const sections = generateGroceryList(plan, []);
-    const order = sections.map((s) => s.aisle);
-    const expected = ["produce", "pantry", "beverages"];
-    // relative order preserved per AISLE_ORDER
-    expect(order).toEqual(
-      expected.sort(
-        (a, b) =>
-          ["produce", "meat", "dairy", "bakery", "frozen", "pantry", "beverages", "other"].indexOf(a) -
-          ["produce", "meat", "dairy", "bakery", "frozen", "pantry", "beverages", "other"].indexOf(b),
-      ),
-    );
+    const order = generateGroceryList(plan, []).map((s) => s.aisle);
+    expect(order).toEqual(["produce", "pantry", "beverages"]);
+  });
+
+  it("sets mayAlreadyHave=true when later duplicate occurrence is long-lasting", () => {
+    const firstPerishable = meal("MealA", [
+      { name: "Butter", quantity: 1, unit: "tbsp", aisle: "dairy", shelfLife: "perishable" },
+    ]);
+    const secondLongLasting = meal("MealB", [
+      { name: "Butter", quantity: 2, unit: "tbsp", aisle: "dairy", shelfLife: "long-lasting" },
+    ]);
+    const mixedPlan: WeekPlan = {
+      meals: [
+        { id: "m1", meal: firstPerishable, servings: 2, leftovers: false },
+        { id: "m2", meal: secondLongLasting, servings: 2, leftovers: false },
+      ],
+      beverages: [],
+    };
+    const sections = generateGroceryList(mixedPlan, []);
+    const dairy = sections.find((s) => s.aisle === "dairy")!;
+    const butter = dairy.items.find((i) => i.name === "Butter")!;
+    expect(butter.mayAlreadyHave).toBe(true);
+    expect(butter.quantity).toBe(3); // 1 + 2
+  });
+
+  it("includes all beverages with the same name (different ids) and works with no meals", () => {
+    const bevOnly: WeekPlan = {
+      meals: [],
+      beverages: [
+        { id: "bev-1", name: "Orange juice" },
+        { id: "bev-2", name: "Orange juice" },
+      ],
+    };
+    const sections = generateGroceryList(bevOnly, []);
+    expect(sections.length).toBe(1);
+    const bev = sections.find((s) => s.aisle === "beverages")!;
+    expect(bev.items.filter((i) => i.name === "Orange juice").length).toBe(2);
   });
 });

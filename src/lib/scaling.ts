@@ -1,7 +1,10 @@
 import { BASE_SERVINGS, LEFTOVER_MULTIPLIER } from "./types";
 import type { Ingredient } from "./types";
 
-/** Scale a base (2-serving) ingredient for chosen servings + leftovers. */
+/**
+ * Scale a base (2-serving) ingredient for chosen servings + leftovers.
+ * Assumes servings >= 1 (enforced by the UI; no runtime guard is added here).
+ */
 export function scaleIngredient(
   ingredient: Ingredient,
   servings: number,
