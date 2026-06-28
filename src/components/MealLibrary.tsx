@@ -12,27 +12,43 @@ export function MealLibrary({ planner }: Props) {
   const [name, setName] = useState("");
   const [type, setType] = useState<MealType>("dinner");
   const [ingredient, setIngredient] = useState("");
+  const [ingredients, setIngredients] = useState<string[]>([]);
 
   const meals = planner.state.library.filter((m) =>
     m.name.toLowerCase().includes(query.toLowerCase()),
   );
 
+  function addIngredient() {
+    const ingName = ingredient.trim();
+    if (!ingName) return;
+    setIngredients((list) => [...list, ingName]);
+    setIngredient("");
+  }
+
+  function removeIngredient(index: number) {
+    setIngredients((list) => list.filter((_, i) => i !== index));
+  }
+
   function saveMeal(e: React.FormEvent) {
     e.preventDefault();
     const mealName = name.trim();
-    const ingName = ingredient.trim();
-    if (!mealName || !ingName) return;
+    if (!mealName || ingredients.length === 0) return;
     planner.addCustomMeal({
       name: mealName,
       type,
-      // v1 custom meals capture one ingredient with safe defaults; multi-row
-      // ingredient entry is a future enhancement.
-      ingredients: [
-        { name: ingName, quantity: 1, unit: "", aisle: "other", shelfLife: "perishable" },
-      ],
+      // Custom meals capture names only; quantity/unit/aisle use safe defaults
+      // and can be edited later.
+      ingredients: ingredients.map((ingName) => ({
+        name: ingName,
+        quantity: 1,
+        unit: "",
+        aisle: "other",
+        shelfLife: "perishable",
+      })),
     });
     setName("");
     setIngredient("");
+    setIngredients([]);
     setType("dinner");
     setShowForm(false);
   }
@@ -74,13 +90,45 @@ export function MealLibrary({ planner }: Props) {
             </select>
           </div>
           <div>
-            <label htmlFor="meal-ingredient" className="block text-sm font-medium mb-1">First ingredient</label>
-            <input
-              id="meal-ingredient"
-              value={ingredient}
-              onChange={(e) => setIngredient(e.target.value)}
-              className="w-full border rounded px-3 py-2"
-            />
+            <label htmlFor="meal-ingredient" className="block text-sm font-medium mb-1">Ingredient</label>
+            <div className="flex gap-2">
+              <input
+                id="meal-ingredient"
+                value={ingredient}
+                onChange={(e) => setIngredient(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addIngredient();
+                  }
+                }}
+                className="flex-1 border rounded px-3 py-2"
+              />
+              <button
+                type="button"
+                onClick={addIngredient}
+                className="px-3 py-2 rounded bg-emerald-600 text-white text-sm whitespace-nowrap"
+              >
+                Add ingredient
+              </button>
+            </div>
+            {ingredients.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {ingredients.map((ing, i) => (
+                  <li key={i} className="flex justify-between items-center bg-gray-50 border rounded px-3 py-1.5 text-sm">
+                    <span>{ing}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeIngredient(i)}
+                      aria-label={`Remove ${ing}`}
+                      className="text-gray-400 hover:text-red-600"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <button type="submit" className="px-3 py-2 rounded bg-gray-800 text-white text-sm">
             Save meal
