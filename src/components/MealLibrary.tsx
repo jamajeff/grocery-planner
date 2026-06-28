@@ -1,10 +1,23 @@
 import { useState } from "react";
 import type { usePlannerState } from "../hooks/usePlannerState";
-import type { MealType } from "../lib/types";
+import type { Aisle, MealType } from "../lib/types";
+import { guessAisle } from "../lib/categorize";
 
 type Props = { planner: ReturnType<typeof usePlannerState> };
 
+type DraftIngredient = { name: string; aisle: Aisle };
+
 const TYPES: MealType[] = ["breakfast", "lunch", "dinner"];
+const AISLES: Aisle[] = [
+  "produce",
+  "meat",
+  "dairy",
+  "bakery",
+  "frozen",
+  "pantry",
+  "beverages",
+  "other",
+];
 
 export function MealLibrary({ planner }: Props) {
   const [query, setQuery] = useState("");
@@ -12,7 +25,7 @@ export function MealLibrary({ planner }: Props) {
   const [name, setName] = useState("");
   const [type, setType] = useState<MealType>("dinner");
   const [ingredient, setIngredient] = useState("");
-  const [ingredients, setIngredients] = useState<string[]>([]);
+  const [ingredients, setIngredients] = useState<DraftIngredient[]>([]);
 
   const meals = planner.state.library.filter((m) =>
     m.name.toLowerCase().includes(query.toLowerCase()),
@@ -21,8 +34,12 @@ export function MealLibrary({ planner }: Props) {
   function addIngredient() {
     const ingName = ingredient.trim();
     if (!ingName) return;
-    setIngredients((list) => [...list, ingName]);
+    setIngredients((list) => [...list, { name: ingName, aisle: guessAisle(ingName) }]);
     setIngredient("");
+  }
+
+  function setIngredientAisle(index: number, aisle: Aisle) {
+    setIngredients((list) => list.map((ing, i) => (i === index ? { ...ing, aisle } : ing)));
   }
 
   function removeIngredient(index: number) {
@@ -36,13 +53,13 @@ export function MealLibrary({ planner }: Props) {
     planner.addCustomMeal({
       name: mealName,
       type,
-      // Custom meals capture names only; quantity/unit/aisle use safe defaults
-      // and can be edited later.
-      ingredients: ingredients.map((ingName) => ({
-        name: ingName,
+      // Aisle is auto-detected then user-editable; quantity/unit/shelfLife keep
+      // safe defaults and can be refined later.
+      ingredients: ingredients.map((ing) => ({
+        name: ing.name,
         quantity: 1,
         unit: "",
-        aisle: "other",
+        aisle: ing.aisle,
         shelfLife: "perishable",
       })),
     });
@@ -115,12 +132,22 @@ export function MealLibrary({ planner }: Props) {
             {ingredients.length > 0 && (
               <ul className="mt-2 space-y-1">
                 {ingredients.map((ing, i) => (
-                  <li key={i} className="flex justify-between items-center bg-gray-50 border rounded px-3 py-1.5 text-sm">
-                    <span>{ing}</span>
+                  <li key={i} className="flex justify-between items-center gap-2 bg-gray-50 border rounded px-3 py-1.5 text-sm">
+                    <span className="flex-1 truncate">{ing.name}</span>
+                    <select
+                      value={ing.aisle}
+                      onChange={(e) => setIngredientAisle(i, e.target.value as Aisle)}
+                      aria-label={`Aisle for ${ing.name}`}
+                      className="border rounded px-1.5 py-1 text-xs capitalize bg-white"
+                    >
+                      {AISLES.map((a) => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
                     <button
                       type="button"
                       onClick={() => removeIngredient(i)}
-                      aria-label={`Remove ${ing}`}
+                      aria-label={`Remove ${ing.name}`}
                       className="text-gray-400 hover:text-red-600"
                     >
                       ✕
